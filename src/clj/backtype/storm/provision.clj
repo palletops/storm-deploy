@@ -16,11 +16,14 @@
 
 (log-capture! "java.logging")
 
+
+;; 20130301 -- Toni: my-region assumes jclouds
 ;; memoize this
 (defn my-region []
   (-> (pallet.configure/pallet-config) :services :default :jclouds.regions)
   )
 
+;; 20130301 -- Toni: assumes jclouds
 (defn jclouds-group [& group-pieces]
   (str "jclouds#"
        (apply str group-pieces)
@@ -28,6 +31,7 @@
        (my-region)
        ))
 
+;; 20130301 -- Toni: assumes jclouds
 (defn- print-ips-for-tag! [aws tag-str]
   (let [running-node (filter running? (map (partial pallet.compute.jclouds/jclouds-node->node aws) (nodes-in-group aws tag-str)))]
     (info (str "TAG:     " tag-str))
@@ -78,15 +82,18 @@
             )
     (debug "Finished converge")
 
-    (authorize-group aws (my-region) (jclouds-group "nimbus-" name) (jclouds-group "supervisor-" name))
-    (authorize-group aws (my-region) (jclouds-group "supervisor-" name) (jclouds-group "nimbus-" name))
-    (debug "Finished authorizing groups")
+    ;; 20130301 -- Toni: disabling AWS stuff
+    ;(authorize-group aws (my-region) (jclouds-group "nimbus-" name) (jclouds-group "supervisor-" name))
+    ;(authorize-group aws (my-region) (jclouds-group "supervisor-" name) (jclouds-group "nimbus-" name))
+    ;(debug "Finished authorizing groups")
 
     (lift nimbus :compute aws :phase [:post-configure :exec])
     (lift supervisor :compute aws :phase [:post-configure :exec])
     (debug "Finished post-configure and exec phases")
 
-    (attach! aws name)
+    ;; 20130301 -- Toni: disabling AWS stuff
+    ;(attach! aws name)
+    
     (info "Provisioning Complete.")
     (print-all-ips! aws name)))
 
@@ -130,7 +137,8 @@
                  :user
                  (util/resolve-keypaths))
         ]
-    (System/setProperty "jna.nosys" "true")
+    ;; 20130301 -- Toni: not needed with pallet 0.7.3
+    ;;(System/setProperty "jna.nosys" "true")
     (with-var-roots [node/*USER* user]
       (with-command-line args
         "Provisioning tool for Storm Clusters"

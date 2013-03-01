@@ -20,6 +20,13 @@
   ([] (storm-config "default"))
   ([conf-name] (compute-service-properties (pallet-config) [conf-name])))
 
+
+;; 20130301 -- Toni: These -ip functions use jclouds directly to
+;; obtain the nodes in a group, and also use pallet-jclouds to then
+;; convert jclouds nodes to pallet-nodes. This should be simplified
+;; and the dependency to jclouds be removed. Check how this is done
+;; for hadoop:
+;; https://github.com/pallet/pallet-hadoop/blob/develop/src/pallet_hadoop/node.clj#L276
 (defn nimbus-ip [compute name]
   (let [running-nodes (filter running? (map (partial jclouds-node->node compute) (nodes-in-group compute (str "nimbus-" name))))]
     (assert (= (count running-nodes) 1))
